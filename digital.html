@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FlavorNest</title>
+
+  <!-- Google fonts used in your originals -->
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Pacifico&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ---------------------------
+       LOGIN OVERLAY (scoped)
+       I scoped all login styles under #loginOverlay to avoid clashing
+       with the main site's styles.
+       --------------------------- */
+    #loginOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.35);
+    }
+    #loginOverlay .bg {
+      position: absolute;
+      inset: 0;
+      background: url("https://images.unsplash.com/photo-1546069901-ba9599a7e63c") no-repeat center center/cover;
+      filter: blur(2px) brightness(.6);
+      z-index: -1;
+    }
+    #loginOverlay .login-container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 28px 34px;
+      border-radius: 12px;
+      box-shadow: 0px 6px 30px rgba(0,0,0,0.35);
+      width: 360px;
+      text-align: center;
+    }
+    #loginOverlay * { box-sizing: border-box; font-family: "Poppins", sans-serif; }
+    #loginOverlay .logo { font-size: 28px; font-weight: 700; color: #5c3317; margin-bottom: 12px; }
+    #loginOverlay .logo span { color: #ff5c00; }
+    #loginOverlay input { width:100%; padding:10px 12px; margin:8px 0; border:1px solid #ccc; border-radius:8px; outline:none; }
+    #loginOverlay button { width:100%; padding:10px; background:#ff5c00; border:none; border-radius:8px; color:#fff; font-size:16px; cursor:pointer; transition:0.2s; }
+    #loginOverlay button:hover { background:#e14c00; }
+    #loginOverlay .switch { margin-top:12px; color:#333; font-size:14px; }
+    #loginOverlay .switch span { color:#ff5c00; cursor:pointer; font-weight:600; }
+    #loginOverlay .hidden { display:none; }
+    #loginOverlay h2 { margin-bottom:6px; color:#5c3317; }
+
+    /* ---------------------------
+       MAIN SITE STYLES (unchanged, minimal reformatting)
+       from your FlavorNest file (kept same)
+       --------------------------- */
+    body{font-family:'Roboto',sans-serif;margin:0;background:linear-gradient(135deg,#fff7f0,#f0fff7);color:#333;overflow-x:hidden}
+    header{background:url('https://images.pexels.com/photos/1050303/pexels-photo-1050303.jpeg') center/cover;color:white;text-align:center;padding:2rem;position:relative;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+    header::after{content:"";position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.35)}
+    header h1{font-family:'Pacifico',cursive;font-size:2.8rem;position:relative;z-index:1;background:linear-gradient(90deg,#ff6f61,#ffcc70);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    header .tagline{position:relative;z-index:1;font-style:italic;color:#fff8f0;margin-top:.5rem}
+    nav{display:flex;justify-content:center;gap:1rem;margin:1rem 0}
+    nav button{background:linear-gradient(45deg,#ffb347,#ffcc70);border:none;padding:.6rem 1.5rem;border-radius:25px;color:white;cursor:pointer;font-weight:500;transition:.3s}
+    nav button:hover{transform:scale(1.05);box-shadow:0 8px 25px rgba(255,179,71,.5)}
+    nav button.active{box-shadow:0 4px 12px rgba(255,180,71,.5)}
+    .container{padding:1rem}
+    .search{text-align:center;margin-bottom:1rem}
+    .search input{padding:.7rem 1rem;width:60%;border-radius:25px;border:2px solid #ffb347}
+    .filter-buttons{text-align:center;margin-bottom:1rem}
+    .filter-buttons button{margin:0 .3rem;padding:.5rem 1rem;border:none;border-radius:25px;background:#ffb347;color:white;cursor:pointer;transition:.3s}
+    .filter-buttons button.active{box-shadow:0 4px 12px rgba(255,180,71,.5)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1.5rem}
+    .card,.cuisine-card,.cuisine-detail-card{border-radius:20px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,.2);transition:.3s;cursor:pointer;position:relative}
+    .card:hover,.cuisine-card:hover,.cuisine-detail-card:hover{transform:translateY(-10px);box-shadow:0 15px 30px rgba(0,0,0,.3)}
+    .card img,.cuisine-detail-card img,.cuisine-card img{width:100%;height:180px;object-fit:cover;border-radius:10px}
+    .card-content{padding:1rem}
+    .card h3{margin:0 0 .5rem;font-family:'Lobster',cursive;font-size:1.6rem;color:#ff6f61}
+    .favorite-btn{position:absolute;top:10px;left:10px;font-size:1.5rem;cursor:pointer;z-index:2;padding:6px 8px;border-radius:50%}
+    .badge{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.85);padding:5px 10px;border-radius:50px;font-size:1.2rem;z-index:2}
+    .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);align-items:center;justify-content:center;z-index:2000}
+    .modal{background:#fff;border-radius:15px;max-width:900px;width:92%;padding:1.5rem;max-height:85%;overflow-y:auto}
+    .modal h2{text-align:center;color:#ff6f61;font-family:'Lobster',cursive}
+    .close-btn{float:right;background:#ff6f61;color:white;border:none;border-radius:25px;padding:.5rem 1rem;cursor:pointer}
+    pre,ul{background:#fff0f5;padding:10px;border-radius:10px;overflow-x:auto}
+    .cuisine-detail-back{margin-bottom:1rem;display:inline-block;padding:.5rem 1rem;border-radius:25px;background:#ff6f61;color:white;cursor:pointer}
+    .meal-day{margin:1rem 0;padding:1rem;border:1px solid #ffb347;border-radius:15px;background:linear-gradient(160deg,#fff5f7,#ffe0e9)}
+    .meal-day h3{margin:0 0 .5rem;color:#ff6f61}
+    .meal-summary{background:#fff0f5;padding:1rem;border-radius:15px;margin-top:1rem}
+    .cuisine-card{display:flex;align-items:center;justify-content:center;height:180px;font-size:1.5rem;text-align:center;color:white;text-shadow:1px 1px 3px rgba(0,0,0,0.5)}
+    .cuisine-card:hover{transform:translateY(-5px);box-shadow:0 12px 25px rgba(0,0,0,.25)}
+    @media (max-width:600px){
+      .search input{width:90%}
+      header h1{font-size:2rem}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN / REGISTER OVERLAY (shows first) -->
+  <div id="loginOverlay">
+    <div class="bg" aria-hidden="true"></div>
+
+    <div class="login-container">
+
+      <!-- LOGIN FORM -->
+      <div id="loginForm">
+        <h2>Login to <span class="logo">Flavor<span>Nest</span></span></h2>
+        <input id="loginUsername" type="text" placeholder="Username" required>
+        <input id="loginPassword" type="password" placeholder="Password" required>
+        <button id="loginBtn">Login</button>
+        <p class="switch">Don’t have an account? <span id="toRegister">Create Account</span></p>
+      </div>
+
+      <!-- REGISTRATION FORM -->
+      <div id="registerForm" class="hidden">
+        <h2>Create <span class="logo">Flavor<span>Nest</span></span> Account</h2>
+        <input id="regUsername" type="text" placeholder="Username" required>
+        <input id="regEmail" type="email" placeholder="Email" required>
+        <input id="regPassword" type="password" placeholder="Create Password" required>
+        <input id="regConfirm" type="password" placeholder="Confirm Password" required>
+        <button id="registerBtn">Register</button>
+        <p class="switch">Already have an account? <span id="toLogin">Login</span></p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN FLAVORNEST SITE (keeps original markup) -->
+  <header>
+    <h1>🧑‍🍳 FlavorNest</h1>
+    <p class="tagline">Your Gateway to Delicious Recipes & Meal Planning</p>
+  </header>
+
+  <nav>
+    <button id="navHome" onclick="showPage('home')" class="active">Home</button>
+    <button id="navCuisines" onclick="showPage('cuisines')">Cuisines</button>
+    <button id="navFavorites" onclick="showPage('favorites')">Favorites</button>
+    <button id="navMeal" onclick="showPage('mealPlanner')">Meal Planner</button>
+  </nav>
+
+  <div class="container">
+    <div class="search"><input id="searchBox" placeholder="Search recipes, cuisines, descriptions..." oninput="renderAll()"/></div>
+    <div class="filter-buttons">
+      <button id="allBtn" class="active" onclick="setFilter('all')">All</button>
+      <button id="vegBtn" onclick="setFilter('veg')">Veg 🥦</button>
+      <button id="nonvegBtn" onclick="setFilter('nonveg')">Non-Veg 🍗</button>
+    </div>
+
+    <div id="home" class="page"></div>
+    <div id="cuisines" class="page" style="display:none"></div>
+    <div id="cuisineDetails" class="page" style="display:none"></div>
+    <div id="favorites" class="page" style="display:none"></div>
+    <div id="mealPlanner" class="page" style="display:none"></div>
+  </div>
+
+  <div id="modalOverlay" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <button class="close-btn" onclick="closeModal()">Close</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    /***** LOGIN overlay behavior *****/
+    const loginOverlay = document.getElementById('loginOverlay');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    document.getElementById('toRegister').addEventListener('click', () => {
+      loginForm.classList.add('hidden'); registerForm.classList.remove('hidden');
+    });
+    document.getElementById('toLogin').addEventListener('click', () => {
+      registerForm.classList.add('hidden'); loginForm.classList.remove('hidden');
+    });
+
+    // When user clicks Login or Register, close overlay and show main app.
+    // (No authentication logic added — matches your original simple behavior.)
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      loginOverlay.style.display = 'none';
+      // optionally focus search box
+      setTimeout(()=>{ try{ document.getElementById('searchBox').focus(); }catch(e){} },100);
+    });
+    document.getElementById('registerBtn').addEventListener('click', () => {
+      loginOverlay.style.display = 'none';
+      setTimeout(()=>{ try{ document.getElementById('searchBox').focus(); }catch(e){} },100);
+    });
+
+    /***** Data & UI constants *****/
+    const cIcons = {
+      'American':'🥞','Italian':'🍝','Indian':'🍛','Japanese':'🍣','Mexican':'🌮','Thai':'🍜','Dessert':'🍰','Salad':'🥗'
+    };
+    const gradients = ['#FFD1DC','#FFE4B5','#B0E0E6','#D1FFD6','#E6E6FA','#FFFACD','#F0E68C','#FFB6C1','#E0FFFF'];
+    let filter = 'all', mealPlan = {}, weekDays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+    const recipes = [
+      {name:'Classic Pancakes',cuisine:'American',type:'veg',time:'20 mins',desc:'Fluffy breakfast pancakes.',img:'https://images.pexels.com/photos/28260046/pexels-photo-28260046.jpeg',ingredients:['1 cup flour','1 tbsp sugar','1 tsp baking powder','1/2 tsp baking soda','1 cup buttermilk','1 egg','2 tbsp butter'],steps:'In a bowl, combine flour, sugar, baking powder, and salt\nIn another bowl, whisk together milk, egg, and melted butter.Pour the wet ingredients into the dry ingredients\nStir gently until just combined (small lumps are okay)\nHeat a non-stick pan or griddle over medium heat and lightly grease it with butter or oil\nPour about ¼ cup of batter onto the pan for each pancake\nCook until bubbles form on the surface (about 1–2 minutes)\nFlip the pancake and cook the other side until golden brown\nStack them up and serve warm with butter, maple syrup, or fruit toppings',favorite:false},
+      {name:'Spaghetti Pasta',cuisine:'Italian',type:'veg',time:'25 mins',desc:'Pasta with tomato sauce.',img:'https://images.pexels.com/photos/11654225/pexels-photo-11654225.jpeg',ingredients:['200g spaghetti','Tomatoes','Onion','Garlic','Olive oil','Basil'],steps:'Bring water to a boil in a large pot, add a pinch of salt, and cook the spaghetti for about 8–10 minutes until soft\nDrain the water and drizzle a little olive oil over the pasta to prevent sticking\nHeat olive oil in a pan, sauté chopped onion and garlic until golden brown\nAdd tomato puree or ready-made pasta sauce\nStir and cook for 5–7 minutes\nAdd salt and black pepper\nMix well\nAdd the boiled spaghetti to the sauce and toss gently until fully coated\nGarnish with grated cheese or herbs\nserve hot',favorite:false},
+      {name:'Chicken Curry',cuisine:'Indian',type:'nonveg',time:'45 mins',desc:'Spicy chicken curry.',img:'https://images.pexels.com/photos/10445627/pexels-photo-10445627.jpeg',ingredients:['500g chicken','Onions','Tomatoes','Spices','Yogurt'],steps:'sautéing onions, ginger, and garlic in oil until golden\nAdd tomatoes, turmeric, chili, coriander, and garam masala to form a rich masala base\nMix in marinated chicken pieces and cook until coated in spices\nPour water or coconut milk\nsimmer until the chicken is tender and the gravy thickens\nGarnish with fresh coriander',favorite:false},
+      {name:'Biryani',cuisine:'Indian',type:'nonveg',time:'1 hr',desc:'Aromatic rice with meat.',img:'https://i.pinimg.com/1200x/79/27/90/79279075dd28543295693a06955e09a5.jpg',ingredients:['Rice','Chicken/mutton','Onions','Tomatoes','Yogurt','Spices'],steps:'Marinate the meat with yogurt, ginger-garlic paste, and spices like turmeric, chili, and garam masala\nPre boil basmati rice with whole spices such as cardamom, cloves, and bay leaves\nFry onions until golden brown and set aside for layering\nLayer rice and marinated meat in a pot, adding fried onions, mint, and saffron milk\nCook on dum (steam) by sealing the pot to trap aroma and flavor until the meat and rice are perfectly done',favorite:false},
+      {name:'Sushi Platter',cuisine:'Japanese',type:'nonveg',time:'40 mins',desc:'Assorted sushi rolls.',img:'https://i.pinimg.com/736x/3f/16/88/3f1688a1f808bbcb91cc33411e25836f.jpg',ingredients:['Rice','Nori','Salmon','Avocado','Cucumber'],steps:'Prepare sushi rice by mixing cooked short-grain rice with rice vinegar, sugar, and salt\nSlice fresh fish, seafood, and vegetables into thin, even pieces\nAssemble different sushi types—rolls (maki), hand rolls (temaki), and pressed rice with toppings (nigiri)\nShape and arrange each sushi piece neatly on a platter for visual appeal\nServe with soy sauce, wasabi, and pickled ginger for balanced flavor and presentation',favorite:false},
+      {name:'Miso Soup',cuisine:'Japanese',type:'veg',time:'15 mins',desc:'Classic Japanese soup.',img:'https://i.pinimg.com/1200x/af/95/a8/af95a8151cbef4170465b71e77ceab99.jpg',ingredients:['Miso paste','Tofu','Seaweed','Spring onions'],steps:'Boil 2 cups of dashi (or vegetable broth) in a pot on medium flame\nAdd small cubes of tofu and soaked seaweed (wakame)\nCook gently for 2–3 minutes\nTake a small bowl, add a little hot broth, and dissolve 2 tbsp miso paste in it until smooth\nPour the dissolved miso back into the pot\n(Do not boil after adding miso)\nAdd chopped green onions and stir lightly\nServe hot\nenjoy your flavorful miso soup',favorite:false},
+      {name:'Chicken Teriyaki',cuisine:'Japanese',type:'nonveg',time:'30 mins',desc:'Sweet & savory chicken teriyaki.',img:'https://i.pinimg.com/1200x/30/a6/37/30a637e11d698e97d728cb5feb3ae7c6.jpg',ingredients:['Chicken','Soy sauce','Sugar','Mirin','Ginger','Garlic'],steps:'Prepare the sauce by mixing soy sauce, mirin, sake, and sugar, then simmer until slightly thick\nSeason chicken pieces (usually thighs) lightly with salt and pepper\nPan-sear or grill the chicken until golden brown and fully cooked\nPour the teriyaki sauce over the chicken and let it glaze while simmering\nServe hot with steamed rice and vegetables, garnished with sesame seeds or green onions',favorite:false},
+      {name:'Salmon Teriyaki',cuisine:'Japanese',type:'nonveg',time:'35 mins',desc:'Salmon with teriyaki sauce.',img:'https://i.pinimg.com/1200x/4c/c1/5a/4cc15a8f87c94354574cc059481123cc.jpg',ingredients:['Salmon','Soy sauce','Sugar','Mirin','Ginger'],steps:'Make the teriyaki sauce by combining soy sauce, mirin, sake, and sugar, then simmer until glossy\nSeason fresh salmon fillets lightly with salt and pat them dry\nPan-sear or grill the salmon until the skin is crisp and the inside is tender\nBrush or pour the sauce over the salmon, letting it caramelize gently\nServe immediately with steamed rice and vegetables for a savory-sweet meal',favorite:false},
+      {name:'Chicken Katsu',cuisine:'Japanese',type:'nonveg',time:'45 mins',desc:'Crispy fried chicken cutlet.',img:'https://i.pinimg.com/736x/38/ab/f8/38abf862b6edba164541ee1d76fdd1b1.jpg',ingredients:['Chicken','Flour','Egg','Panko breadcrumbs','Oil'],steps:'Flatten boneless chicken breasts to an even thickness using a meat mallet\nCoat the chicken in flour, dip it in beaten egg, and cover with panko breadcrumbs\nHeat oil in a pan and deep-fry the chicken until golden brown and crispy\nSlice the cooked chicken into strips for easy serving\nServe hot with tonkatsu sauce, shredded cabbage, and steamed rice',favorite:false},
+      {name:'Ramen',cuisine:'Japanese',type:'nonveg',time:'40 mins',desc:'Noodle soup with toppings.',img:'https://i.pinimg.com/1200x/b9/8b/54/b98b54021ba88b02ff04666c21e845de.jpg',ingredients:['Noodles','Broth','Pork/Chicken','Eggs','Vegetables'],steps:'Prepare the broth by simmering pork bones, chicken, or miso with aromatics for rich flavor\nBoil ramen noodles until chewy, then drain well\nPrepare toppings like sliced chashu pork, soft-boiled eggs, nori, and green onions\nAssemble the bowl by adding noodles, pouring in hot broth, and arranging toppings neatly\nFinish with flavor oils or sauces like sesame oil or chili paste, then serve immediately',favorite:false},
+      {name:'Rice Balls (Tuna Mayo Onigiri)',cuisine:'Japanese',type:'nonveg',time:'20 mins',desc:'Rice balls with tuna mayo.',img:'https://i.pinimg.com/1200x/da/e0/1f/dae01fe98c757e87c5941025bc0b0004.jpg',ingredients:['Rice','Tuna','Mayonnaise','Seaweed'],steps:'Cook short-grain Japanese rice until soft and slightly sticky\nSeason the rice lightly with salt while it’s still warm\nShape the rice into triangles or rounds using wet or salted hands\nAdd fillings like salted salmon, pickled plum (umeboshi), or tuna mayo inside if desired\nWrap with nori (seaweed) and serve as a simple, portable Japanese snack',favorite:false},
+
+      {name:'Sambar',cuisine:'Indian',type:'veg',time:'40 mins',desc:'South Indian lentil stew.',img:'https://i.pinimg.com/1200x/b7/12/89/b71289235e68ac42449da196d912e59a.jpg',ingredients:['Toor dal','Tamarind','Vegetables','Sambar powder'],steps:'Wash and cook toor dal in a pressure cooker with enough water until soft and mushy\nMash well\nBoil the chopped vegetables in water until tender\nIn a pan, heat oil, add mustard seeds, let them splutter\nAdd curry leaves and chopped onion\nsauté until golden\nAdd chopped tomato and cook until soft\nAdd boiled vegetables, mashed dal, sambar powder, salt, and tamarind pulp. Mix well\nAdd water as needed to adjust consistency\nBoil the sambar for 5–10 minutes\nGarnish with coriander leaves\nserve hot',favorite:false},
+      {name:'Paneer Butter Masala',cuisine:'Indian',type:'veg',time:'45 mins',desc:'Creamy paneer curry.',img:'https://images.pexels.com/photos/9609838/pexels-photo-9609838.jpeg',ingredients:['Paneer','Tomatoes','Onions','Butter','Cream','Spices'],steps:'Heat oil and butter in a pan\nAdd chopped onions and sauté until golden brown\nAdd ginger-garlic paste and cook until the raw smell goes away\nAdd tomato puree, red chili powder, turmeric, and salt\nCook until the oil separates from the masala\nPour in some water and let the gravy simmer for 3–4 minutes\nAdd paneer cubes and cook for 2–3 minutes on low flame\nStir in fresh cream and garam masala. Mix well and cook for another minute\nGarnish with coriander leaves\nserve hot',favorite:false},
+      {name:'Tacos',cuisine:'Mexican',type:'nonveg',time:'30 mins',desc:'Corn tortillas with meat.',img:'https://images.pexels.com/photos/5837196/pexels-photo-5837196.jpeg',ingredients:['Taco shells','Beef','Lettuce','Cheese','Salsa'],steps:'Prepare the filling\nIn a pan, heat oil and cook your choice of meat or veggies with taco seasoning until well done and flavorful\nWarm the tortillas\nHeat corn tortillas on a pan for about 20–30 seconds each side until soft and slightly golden\nAssemble tacos\nPlace the cooked filling in the center of each tortilla\nAdd toppings\nSprinkle chopped onion, tomato, coriander, and cheese (if desired)\nServe and enjoy\nSqueeze fresh lime juice on top and serve with salsa or sour cream',favorite:false},
+      {name:'Pad Thai',cuisine:'Thai',type:'nonveg',time:'35 mins',desc:'Stir-fried noodles with shrimp.',img:'https://images.pexels.com/photos/12561883/pexels-photo-12561883.jpeg',ingredients:['Noodles','Shrimp','Eggs','Sprouts','Peanuts'],steps:'Cook the noodles\nBoil rice noodles until soft (about 5 minutes), then drain and set aside\nPrepare the sauce\nMix soy sauce, tamarind paste, and sugar in a small bowl\nCook protein and veggies\nIn a pan or wok, heat oil and cook tofu or shrimp/chicken until golden\nAdd veggies and stir-fry briefly\nAdd noodles and eggs\nPush everything to one side, crack eggs on the other side, scramble them, then mix with noodles and sauce\nFinish and serve\nStir well for 1–2 minutes, garnish with crushed peanuts and lime wedges, and serve hot',favorite:false},
+
+      {name:'Chocolate Cake',cuisine:'Dessert',type:'veg',time:'1 hr',desc:'Rich chocolate cake.',img:'https://images.pexels.com/photos/6341572/pexels-photo-6341572.jpeg',ingredients:['Flour','Sugar','Cocoa','Eggs','Milk'],steps:'Preheat oven to 180°C (350°F) and grease a cake tin with butter or oil\nIn a bowl, mix all dry ingredients – flour, cocoa powder, baking powder, baking soda, and sugar\nAdd wet ingredients – milk, eggs (or curd), oil, and vanilla essence.\nMix well to form a smooth batter\nAdd ½ cup hot water gradually and mix until the batter is lump-free\nPour the batter into the greased cake tin\nBake for 30–35 minutes or until a toothpick comes out clean\nLet it cool completely before removing from the tin\nFrost with chocolate ganache or buttercream\nserve',favorite:false},
+      {name:'Classic Chocolate Brownie',cuisine:'Dessert',type:'veg',time:'50 mins',desc:'Rich fudgy chocolate brownie.',img:'https://images.pexels.com/photos/25595974/pexels-photo-25595974.jpeg',ingredients:['200g dark chocolate','150g butter','200g sugar','3 eggs','100g flour'],steps:'Preheat oven to 180°C (350°F) and grease a square baking tray with butter or line it with parchment paper\nIn a bowl, mix melted butter and sugar until smooth\nAdd eggs one by one and whisk well\nThen add vanilla essence\nSift together flour, cocoa powder, salt, and baking powder\nAdd the dry ingredients to the wet mixture and mix gently until combined don’t overmix\nFold in choco chips or chunks if desired\nPour the batter into the prepared tray and spread evenly\nBake for 20–25 minutes or until the top is set but slightly fudgy inside\nCool completely, cut into squares, and enjoy',favorite:false},
+      {name:'Fruit Custard',cuisine:'Dessert',type:'veg',time:'30 mins',desc:'Creamy fruit custard.',img:'https://i.pinimg.com/1200x/94/a3/c8/94a3c8bab1c6e3ff2c973b8f95864b0c.jpg',ingredients:['Milk','Custard powder','Sugar','Mixed fruits'],steps:'Take 2 tbsp custard powder in a small bowl\nmix it with 2 tbsp cold milk to make a smooth paste no lumps\nBoil 2 cups of milk in a pan over medium flame\nAdd sugar and stir until it dissolves\nSlowly add the custard paste to the boiling milk while stirring continuously to avoid lumps\nCook for 2–3 minutes until the mixture thickens, then turn off the flame\nLet it cool completely, then refrigerate for 1–2 hours\nBefore serving, add chopped fruits and mix gently\n\nenjoy your creamy fruit custard\nServe chilled',favorite:false},
+      {name:'Carrot Halwa',cuisine:'Dessert',type:'veg',time:'1 hr',desc:'Sweet carrot pudding.',img:'https://i.pinimg.com/736x/fc/ab/4b/fcab4bb6c964cf2bfc4e7ebbcdfc9beb.jpg',ingredients:['Carrots','Milk','Sugar','Ghee','Cardamom'],steps:'Wash, peel, and grate the carrots finely\nIn a heavy-bottomed pan, add the grated carrots and milk\nCook on medium heat until the milk reduces and the carrots are soft (15–20 minutes)\nAdd sugar and continue to cook, stirring occasionally, until the mixture thickens\nAdd ghee and crushed cardamomn\nMix well and cook for another 5–7 minutes until ghee separates from the halwa\nGarnish with nuts and raisins\nServe warm',favorite:false},
+      {name:'Cheesecake',cuisine:'Dessert',type:'veg',time:'1 hr',desc:'Classic baked cheesecake.',img:'https://images.pexels.com/photos/3071870/pexels-photo-3071870.jpeg',ingredients:['Cream cheese','Sugar','Eggs','Graham crackers','Butter'],steps:'Mix crushed biscuits with melted butter and press into the base of a springform pan\nChill in the fridge for 10–15 minutes\nIn a bowl, beat cream cheese and sugar until smooth\nAdd eggs one by one, mixing well after each addition\nThen add vanilla essence and heavy cream\nPour the filling over the chilled biscuit base and smooth the top\nBake in a preheated oven at 160°C (320°F) for 40–50 minutes, or until the center is set but slightly wobbly\nCool at room temperature, then refrigerate for at least 4 hours (or overnight) to set\nDecorate with fruits, chocolate, or caramel before serving',favorite:false},
+      {name:'Kheer',cuisine:'Dessert',type:'veg',time:'45 mins',desc:'Rice pudding dessert.',img:'https://i.pinimg.com/1200x/11/e5/f6/11e5f6e011f27c4031d1d6cca8af3a53.jpg',ingredients:['Rice','Milk','Sugar','Cardamom','Nuts'],steps:'Wash the rice thoroughly and soak for 20–30 minutes\nBoil milk in a heavy-bottomed pan over medium heat\nAdd the soaked rice to the boiling milk\nCook on low heat, stirring occasionally, until the rice is soft and the milk thickens 20–25 minute\nAdd sugar and crushed cardamom\nMix well and cook for another 5 minutes\nAdd chopped nuts and raisins. Stir and cook for 2–3 more minutes\nServe hot or chilled, garnished with extra nuts if desired',favorite:false},
+      {name:'Apricot Delight',cuisine:'Dessert',type:'veg',time:'40 mins',desc:'Fruity apricot dessert.',img:'https://i.pinimg.com/1200x/23/2f/40/232f405f2652950272fbad93c3535a0b.jpg',ingredients:['Apricots','Sugar','Gelatin','Cream'],steps:'Soak dried apricots in warm water for 15–20 minutes to soften them\nBlend the soaked apricots with milk to make a smooth puree\nIn a bowl, mix the apricot puree with condensed milk, cream, sugar (if needed), and cardamom powder\nWhisk well until smooth and creamy\nPour into serving bowls or glasses and refrigerate for 1–2 hours to chill\nGarnish with chopped nuts before serving',favorite:false},
+      {name:'Ice Cream',cuisine:'Dessert',type:'veg',time:'30 mins',desc:'Classic creamy ice cream.',img:'https://i.pinimg.com/1200x/46/5c/24/465c24b204e0a748f84e8c8f2503b51d.jpg',ingredients:['Milk','Cream','Sugar','Vanilla essence'],steps:'Whip the heavy cream in a bowl until stiff peaks form\nIn another bowl, mix condensed milk and vanilla essence\nGently fold the whipped cream into the condensed milk mixture until well combined\nAdd any optional mix-ins like chocolate chips or chopped fruits\nPour the mixture into a freezer-safe container and cover it\nFreeze for 6–8 hours or overnight\nScoop and serve chilled',favorite:false},
+      {name:'Laddu',cuisine:'Dessert',type:'veg',time:'35 mins',desc:'Sweet round Indian dessert.',img:'https://images.pexels.com/photos/19151502/pexels-photo-19151502.jpeg',ingredients:['Besan','Sugar','Ghee','Cardamom'],steps:'Heat ghee in a pan on low-medium flame\nAdd besan and roast it slowly, stirring continuously until it turns golden brown and aromatic 10–12 minutes\nTurn off the heat and let it cool slightly warm, not hot\nAdd powdered sugar and cardamom powder\nMix well\nTake small portions of the mixture and shape into round balls (laddus) using your palms\nGarnish with nuts if desired. Store in an airtight container',favorite:false},
+      {name:'Gulab Jamun',cuisine:'Dessert',type:'veg',time:'1.5 hr',desc:'Sweet milk-solid balls in syrup.',img:'https://i.pinimg.com/736x/e6/51/46/e651469a60a2a99adfb2e8cd1fdbc6a4.jpg',ingredients:['Milk powder','Flour','Sugar','Cardamom','Oil'],steps:'Make a soft dough by mixing milk powder, flour, ghee, and milk\nThe dough should be smooth and slightly sticky\nDivide the dough into small smooth balls without cracks\nHeat oil or ghee in a pan on low-medium flame\nFry the balls until golden brown, stirring gently to cook evenly\nIn a separate pan, make sugar syrup by boiling water, sugar, cardamom, and saffron/rose water until slightly thickened\nRemove fried balls from oil and soak them in warm sugar syrup for at least 30 minutes\nServe warm or at room temperature',favorite:false},
+
+      {name:'Classic Green Salad',cuisine:'Salad',type:'veg',time:'15 mins',desc:'Fresh green salad.',img:'https://i.pinimg.com/1200x/5f/6d/98/5f6d98944bc982fb752fd063fe18c797.jpg',ingredients:['Lettuce','Cucumber','Tomatoes','Dressing'],steps:'Wash and chop all the vegetables as needed\nIn a large bowl, combine lettuce, cucumber, carrot, bell pepper, and cherry tomatoes\nIn a small bowl, mix olive oil, lemon juice (or vinegar), salt, and pepper to make a simple dressing\nPour the dressing over the salad and toss gently until evenly coated\nGarnish with herbs if desired and serve fresh',favorite:false},      
+	  {name:'Avocado & Chickpea Salad',cuisine:'Salad',type:'veg',time:'20 mins',desc:'Healthy avocado & chickpea mix.',img:'https://i.pinimg.com/1200x/a3/13/d9/a313d91f98e226cccba81f3436f0545a.jpg',ingredients:['Avocado','Chickpeas','Tomatoes','Lettuce','Dressing'],steps:'Boil or steam the green peas until tender\nLet them cool\nIn a large bowl, combine cubed avocado, cooked chicken, green peas, and chopped onion\nIn a small bowl, mix mayonnaise (or yogurt), lemon juice, salt, and pepper to make the dressing\nPour the dressing over the salad and toss gently to coat all ingredients\nGarnish with chopped coriander or parsley and serve immediately',favorite:false},
+      {name:'Greek Salad',cuisine:'Salad',type:'veg',time:'15 mins',desc:'Traditional Greek salad.',img:'https://i.pinimg.com/1200x/c6/50/da/c650da00562f5263c23369911fb2bff8.jpg',ingredients:['Tomatoes','Cucumber','Feta','Olives','Onion'],steps:'Wash and chop all vegetables as needed\nIn a large bowl, combine lettuce, cucumber, carrot, bell pepper, and cherry tomatoes\nIn a small bowl, mix olive oil, lemon juice (or vinegar), salt, and pepper to make a simple dressing\nPour the dressing over the salad and toss gently until evenly coated\nGarnish with herbs if desired and serve fresh',favorite:false},
+      {name:'Fruit & Nut Salad',cuisine:'Salad',type:'veg',time:'15 mins',desc:'Refreshing fruit & nut salad.',img:'https://i.pinimg.com/1200x/48/3d/03/483d034f78bebb3711f941841ac8a21b.jpg',ingredients:['Mixed fruits','Nuts','Honey'],steps:'Wash and chop all fruits as needed\nIn a large bowl, combine apple, banana, grapes, and any other fruits\nAdd mixed nuts and toss gently\nAdd yogurt or honey and sprinkle a pinch of cinnamon or chaat masala for extra flavor\nMix lightly and serve chilled or fresh',favorite:false},
+      {name:'Cucumber Yogurt Salad',cuisine:'Salad',type:'veg',time:'10 mins',desc:'Cool cucumber with yogurt.',img:'https://i.pinimg.com/1200x/0a/f5/e9/0af5e9c5119eb380b521230dddb27f6f.jpg',ingredients:['Cucumber','Yogurt','Mint','Salt'],steps:'Wash and slice or dice the cucumbers\nIn a bowl, combine cucumbers and onion\nDrizzle olive oil and lemon juice (or vinegar) over the vegetables\nAdd salt and pepper to taste and toss gently\nGarnish with chopped coriander or mint leaves and serve fresh',favorite:false},
+
+      {name:'Mexican Rice Bowl',cuisine:'Mexican',type:'nonveg',time:'30 mins',desc:'Flavorful rice with meat and veggies.',img:'https://i.pinimg.com/736x/01/85/51/018551ed3dd5298b1ec2aa680a3384a4.jpg',ingredients:['Rice','Chicken','Beans','Corn','Salsa'],steps:'Prepare rice base\nCook rice and keep it fluffy\nAdd a pinch of salt and a little oil for flavor\nCook the beans and veggies\nIn a pan, heat oil and sauté beans with veggies\nAdd taco seasoning, cumin, and chili powder\nAdd protein (optional)\nStir in cooked chicken, paneer, or tofu for extra flavor and protein\nAssemble the bowl\nIn a bowl, layer rice at the bottom, then top with the seasoned beans and veggies\nGarnish and serve\nAdd cheese, salsa, coriander, and a squeeze of lime juice. Serve warm and enjoy',favorite:false},
+      {name:'Burritos',cuisine:'Mexican',type:'nonveg',time:'25 mins',desc:'Wrapped tortillas with filling.',img:'https://i.pinimg.com/1200x/ee/ee/64/eeee6405870d2ed7523836e92a59428c.jpg',ingredients:['Tortilla','Beef/Chicken','Rice','Beans','Cheese'],steps:'Prepare the filling with cooked rice, seasoned beans, grilled meat or vegetables, and spices\nWarm large flour tortillas until soft and flexible\nPlace the filling in the center, adding toppings like cheese, salsa, guacamole, or sour cream\nFold the tortilla by tucking in the sides and rolling it tightly into a burrito shape\nGrill or toast the burrito lightly for a crisp outside, then serve warm',favorite:false},
+      {name:'Guacamole',cuisine:'Mexican',type:'veg',time:'15 mins',desc:'Creamy avocado dip.',img:'https://i.pinimg.com/1200x/ec/ab/07/ecab079f008084b95d6e3144fa59f30c.jpg',ingredients:['Avocados','Onion','Tomatoes','Lime','Salt'],steps:'Cut the avocados, remove the pit, and scoop the flesh into a bowl\nMash the avocado roughly with a fork\nAdd finely chopped onion, tomato, and green chili\nAdd lime/lemon juice and salt. Mix well\ngarnish with chopped coriander and a pinch of black pepper\nServe immediately with tortilla chips, toast, or as a side',favorite:false},
+      {name:'Enchiladas',cuisine:'Mexican',type:'nonveg',time:'40 mins',desc:'Tortillas baked with sauce and meat.',img:'https://i.pinimg.com/1200x/a4/46/27/a44627f87b9ade97f1e7733824c56dc7.jpg',ingredients:['Tortillas','Chicken/Beef','Cheese','Sauce'],steps:'Cook the filling with ingredients like shredded chicken, beans, cheese, and Mexican spices\nWarm corn tortillas to make them soft and easy to roll\nFill and roll each tortilla, then place them seam-side down in a baking dish\nPour enchilada sauce (red, green, or mole) generously over the rolled tortillas\nTop with cheese and bake until melted and bubbly, then serve with sour cream and cilantro',favorite:false},
+      {name:'Quesadillas',cuisine:'Mexican',type:'nonveg',time:'20 mins',desc:'Grilled tortillas with cheese and meat.',img:'https://i.pinimg.com/1200x/ab/60/8a/ab608a74a6382314987518e8460c45d8.jpg',ingredients:['Tortilla','Cheese','Chicken/Beef','Vegetables'],steps:'Prepare the filling using cheese, cooked chicken, beans, or vegetables\nPlace the filling on one half of a flour tortilla and fold it over\nCook on a skillet over medium heat until the tortilla is golden and the cheese melts\nFlip carefully to cook both sides evenly\nSlice and serve hot with salsa, guacamole, or sour cream',favorite:false},
+      {name:'Churros',cuisine:'Mexican',type:'veg',time:'30 mins',desc:'Fried dough pastry with sugar.',img:'https://i.pinimg.com/736x/78/fc/0e/78fc0e4a868dc05a9657b06bd4e8d950.jpg',ingredients:['Flour','Sugar','Eggs','Oil','Cinnamon'],steps:'In a saucepan, boil water with sugar, salt, and 2 tbsp oil\nRemove from heat and stir in the flour until it forms a smooth dough\nTransfer the dough to a piping bag with a star nozzle\nHeat oil in a deep pan over medium heat\nPipe strips of dough into the hot oil\nFry until golden brown on all sides, turning occasionally\nRemove churros and drain excess oil on paper towels\nRoll churros in sugar-cinnamon mixture while warm\nServe immediately with chocolate sauce or caramel dip',favorite:false},
+      {name:'Mexican Rice',cuisine:'Mexican',type:'veg',time:'25 mins',desc:'Spiced tomato rice.',img:'https://i.pinimg.com/1200x/05/e9/85/05e985152c6cd23c31fed031ef275d05.jpg',ingredients:['Rice','Tomatoes','Onions','Peppers','Spices'],steps:'Rinse the rice thoroughly and drain\nHeat oil in a pan and sauté onions and garlic until soft and fragrant\nAdd tomato or tomato paste and cook for 2–3 minutes\nAdd rice and stir for 1–2 minutes until rice is lightly coated with oil and tomato mixture\nPour in broth, add cumin, chili powder, and salt\nStir well\nCover the pan and cook on low heat for 15–20 minutes until the rice is cooked and liquid is absorbed\nFluff the rice with a fork, add optional veggies, and serve hot as a side with Mexican dishes',favorite:false},
+
+      {name:'Tom Yum Soup',cuisine:'Thai',type:'nonveg',time:'30 mins',desc:'Hot & sour Thai soup.',img:'https://i.pinimg.com/736x/05/29/b1/0529b19ea144e00f9ff9275bd8295586.jpg',ingredients:['Shrimp','Lemongrass','Kaffir lime leaves','Galangal','Mushrooms','Chilies'],steps:'Boil water or broth with lemongrass, galangal, and kaffir lime leaves for a fragrant base\nAdd proteins like shrimp, chicken, or tofu along with mushrooms\nSeason the soup with fish sauce, lime juice, and Thai chili paste (nam prik pao)\nSimmer gently until the ingredients are cooked and flavors blend\nServe hot garnished with cilantro and extra lime wedges for a tangy, spicy finish',favorite:false},
+      {name:'Gaeng Keow Wan (Green curry)',cuisine:'Thai',type:'nonveg',time:'40 mins',desc:'Spicy Thai green curry.',img:'https://i.pinimg.com/1200x/69/6c/f5/696cf5aa14326d86148caf202e7c9966.jpg',ingredients:['Chicken','Green curry paste','Coconut milk','Basil leaves','Eggplant'],steps:'Heat coconut milk in a pan and stir in green curry paste until aromatic\nAdd chicken or tofu and cook until it’s well coated with the curry mixture\nPour in more coconut milk and water, then simmer until the meat is tender\nAdd vegetables like Thai eggplants, bamboo shoots, and fresh basil leaves\nSeason with fish sauce and palm sugar, then serve hot with steamed jasmine rice',favorite:false},
+      {name:'Som Tum (Thai Green Papaya Salad)',cuisine:'Thai',type:'veg',time:'20 mins',desc:'Refreshing papaya salad.',img:'https://i.pinimg.com/1200x/98/2a/6b/982a6be426a5b5a36fca1357b024f70f.jpg',ingredients:['Green papaya','Tomatoes','Chilies','Peanuts','Fish sauce','Lime'],steps:'Peel and shred the green papaya using a grater or julienne slicer\nIn a mortar and pestle, crush garlic and chilies lightly\nAdd cherry tomatoes and gently pound them to release juice\nIn a bowl, mix fish sauce, lime juice, and sugar until the sugar dissolves\nAdd the shredded papaya and optional vegetables to the bowl\nToss well with the dressing\nTop with roasted peanuts and serve immediately as a fresh, tangy salad',favorite:false},
+      {name:'Massaman Curry',cuisine:'Thai',type:'nonveg',time:'1 hr',desc:'Rich Thai curry with potatoes & meat.',img:'https://i.pinimg.com/1200x/50/8c/72/508c72d1bda4289f67c05db54b3641ff.jpg',ingredients:['Beef/Chicken','Massaman curry paste','Potatoes','Coconut milk','Peanuts'],steps:'Fry Massaman curry paste in coconut milk until fragrant and oil separates\nAdd meat (commonly beef or chicken) and cook until coated with the curry paste\nPour in coconut milk and water, then simmer until the meat is tender\nAdd vegetables and nuts like potatoes, onions, and roasted peanuts\nSeason with fish sauce, tamarind, and sugar, then serve hot with steamed jasmine rice',favorite:false},
+      {name:'Mango Sticky Rice',cuisine:'Thai',type:'veg',time:'40 mins',desc:'Sweet sticky rice with mango.',img:'https://i.pinimg.com/1200x/99/13/c7/9913c71d4ad16f65761d6d8ad0973392.jpg',ingredients:['Sticky rice','Coconut milk','Sugar','Salt','Ripe mango'],steps:'Rinse the sticky rice until the water runs clear. Soak for 30 minutes\nSteam the rice for 20–25 minutes until fully cooked and tender\nIn a small pan, heat coconut milk, sugar, and salt until sugar dissolves (do not boil)\nPour half of the coconut milk mixture over the hot cooked sticky rice and let it absorb for 10–15 minutes\nServe the sticky rice with sliced ripe mangoes on the side\nDrizzle the remaining coconut milk on top and garnish with sesame seeds or toasted mung beans',favorite:false},
+
+      {name:'Pani Puri',cuisine:'Indian',type:'veg',time:'20 mins',desc:'Crispy puris filled with spicy water.',img:'https://i.pinimg.com/736x/f1/93/c9/f193c9d9dbc42c7e2dc479eaf6e34948.jpg',ingredients:['Puris','Boiled potatoes','Tamarind chutney','Spicy water'],steps:'Mix semolina, all-purpose flour, and salt, add water to make a firm dough\nRoll into thin circles and deep fry until puffed and golden brown\nBlend mint, coriander, green chilies, ginger, cumin, black salt, and tamarind into a smooth paste\nMix with cold water and refrigerate\nMash boiled potatoes or chickpeas, add salt and chaat masala\nCrack the top of a puri gently\nFill with potato/chickpea mixture\nDip into the spicy mint-tamarind water and eat immediately',favorite:false},
+      {name:'Masala Dosa',cuisine:'Indian',type:'veg',time:'40 mins',desc:'Crispy dosa stuffed with spicy potatoes.',img:'https://i.pinimg.com/736x/20/5d/8d/205d8db1a1aa5d31510c7a5348ca0998.jpg',ingredients:['Dosa batter','Potatoes','Onion','Mustard seeds','Spices'],steps:'Soak rice, urad dal, and fenugreek seeds for 4–6 hours\nGrind into a smooth batter, add salt, and ferment overnight\nHeat oil in a pan, add mustard seeds and curry leaves\nAdd onions and green chilies, sauté until soft\nAdd turmeric and mashed potatoes, mix well, and cook 2–3 minutes\nGarnish with chopped coriander and set aside\nHeat a non-stick pan or tawa\nPour a ladle of fermented batter and spread thin in a circular motion\nDrizzle a little oil around the edges and cook until crispy\nPlace the potato masala in the center of the dosa, fold, and serve hot',favorite:false},
+      {name:'Butter Naan',cuisine:'Indian',type:'veg',time:'30 mins',desc:'Soft Indian flatbread with butter.',img:'https://i.pinimg.com/736x/fb/a1/ab/fba1abc348e524089bbbbbcbf4a561ec.jpg',ingredients:['Flour','Yogurt','Yeast','Butter'],steps:'In a bowl, mix flour, sugar, salt, baking powder\nAdd yogurt, milk, and oil. Gradually knead into a soft, smooth dough\nCover and rest for 1–2 hours\nDivide the dough into small balls\nRoll each ball into an oval or round shape using a rolling pin\nHeat a skillet or tawa on medium-high heat\nPlace the rolled dough on the hot skillet, cook until bubbles appear on top\nFlip and cook the other side until golden brown\nBrush melted butter on both sides immediately after cooking',favorite:false},
+      {name:'Chicken Lollipop',cuisine:'Indian',type:'nonveg',time:'45 mins',desc:'Spicy fried chicken appetizer.',img:'https://i.pinimg.com/736x/85/20/50/8520506e38ed9da4627336e1b9837c5f.jpg',ingredients:['Chicken lollipops','Spices','Cornflour','Egg'],steps:'Prepare the chicken by cutting drumettes and frenched wings to form lollipops\nMarinate the chicken with ginger-garlic paste, chili powder, soy sauce, and salt for at least 30 minutes\nCoat the marinated chicken in a spiced flour or cornstarch batter\nDeep-fry the chicken until golden brown and crispy\nServe hot with schezwan sauce, chili sauce, or a tangy dip',favorite:false},
+      {name:'Brinjal Curry',cuisine:'Indian',type:'veg',time:'35 mins',desc:'Spiced eggplant curry.',img:'https://i.pinimg.com/1200x/1b/5e/ea/1b5eea400a119f2ffb10877cf04927b3.jpg',ingredients:['Brinjal','Onions','Tomatoes','Spices','Oil'],steps:'Heat oil in a pan and add cumin seeds\nLet them splutter\nAdd onions, garlic, and ginger paste. Sauté until golden brown\nAdd chopped tomatoes and cook until soft and pulpy\nAdd turmeric, red chili, coriander powder, and salt\nMix well\nAdd chopped brinjals, stir to coat with the masala, and cook for 5–7 minutes\nAdd a little water, cover, and simmer until the brinjals are soft and cooked\nGarnish with fresh coriander leaves',favorite:false},
+      {name:'Dal Curry',cuisine:'Indian',type:'veg',time:'30 mins',desc:'Lentils cooked with Indian spices.',img:'https://i.pinimg.com/1200x/2a/8e/57/2a8e57bc82908377e58203bfd9f95e84.jpg',ingredients:['Toor dal','Onions','Tomatoes','Garlic','Spices'],steps:'Wash and cook dal with water and turmeric until soft\nHeat ghee or oil in a pan\nAdd cumin seeds and let them splutter\nAdd chopped garlic and onions; sauté until golden brown\nAdd tomatoes and green chilies\ncook until tomatoes are soft\nPour this tempering into the cooked dal\nAdd salt and mix well\nSimmer for 5–10 minutes to blend flavors\nAdjust consistency with water if needed\nGarnish with fresh coriander leaves',favorite:false},
+      {name:'Pav Bhaji',cuisine:'Indian',type:'veg',time:'30 mins',desc:'Spicy mashed vegetables served with buttered buns.',img:'https://i.pinimg.com/736x/80/f5/4a/80f54a80a9eb0d656afe652c3b67f92c.jpg',ingredients:['Mixed vegetables','Potatoes','Onions','Pav bhaji masala',],steps:'Boil or steam mixed vegetables until soft. Mash them lightly\nHeat butter in a pan\nAdd onions and sauté until golden\nAdd ginger-garlic paste and sauté for a minute\nAdd tomatoes, turmeric, red chili powder, and salt\nCook until tomatoes soften\nAdd the mashed vegetables and Pav Bhaji masala. Mix well and simmer for 5–10 minutes\nAdjust water for desired consistency\nSlice pav buns horizontally and toast with butter on a skillet until golden\nServe hot bhaji with buttered pav, garnished with fresh coriander leaves and lemon wedges',favorite:false},
+      {name:'Chole Bhature',cuisine:'Indian',type:'veg',time:'50 mins',desc:'Spicy chickpeas with deep fried bread.',img:'https://i.pinimg.com/736x/6b/2e/42/6b2e42768af595d6f0c0a8cc5e257db3.jpg',ingredients:['Chickpeas','Onion','Tomatoes','Flour','Spices'],steps:'Boil soaked chickpeas until soft\nHeat oil in a pan, add cumin seeds\nAdd onions and sauté until golden\nAdd ginger-garlic paste and cook 1 min\nAdd tomato puree, turmeric, red chili, and chole masala\nCook until oil separates\nAdd cooked chickpeas to the masala, simmer 10–15 minutes\nAdjust water for desired consistency\nGarnish with coriander\nMix flour, yogurt, sugar, salt, baking powder\nKnead into a soft dough using water\nRest for 1–2 hours\nDivide dough into small balls, roll into discs\nDeep fry in hot oil until puffy and golden\nServe hot chole with bhature, along with sliced onions and lemon wedges',favorite:false},
+      {name:'Bhagara Rice',cuisine:'Indian',type:'veg',time:'30 mins',desc:'Aromatic rice with peanuts and spices.',img:'https://i.pinimg.com/736x/b8/4c/0b/b84c0b46fb18126e8708a476385a8cbe.jpg',ingredients:['Rice','Peanuts','Coconut','Spices','Onions'],steps:'Rinse basmati rice thoroughly and soak for 20–30 minutes\nDrain\nHeat oil or ghee in a pan. Add cumin seeds, curry leaves, and slit green chilies. Sauté for 1–2 minutes\nAdd sliced onions and sauté until golden\nAdd ginger-garlic paste and sauté for another minute\nAdd soaked rice to the pan, sauté gently to coat with the masala\nAdd water, turmeric, salt\nBring to a boil, then cover and simmer on low heat for 12–15 minutes until rice is cooked and water is absorbed\nFluff the rice with a fork, garnish with fresh coriander\n',favorite:false},
+
+      {name:'Mac & Cheese',cuisine:'American',type:'veg',time:'25 mins',desc:'Creamy macaroni and cheese.',img:'https://i.pinimg.com/736x/3e/12/21/3e1221223d7ac67de5507012d9a4c3b9.jpg',ingredients:['Macaroni','Cheddar cheese','Milk','Butter','Flour'],steps:'Boil water in a pot with a pinch of salt\nAdd the macaroni and cook until soft\nDrain the water and keep it aside\nIn a pan, melt butter on low heat\nAdd flour and stir continuously for 1–2 minutes\nSlowly pour in milk, stirring constantly to avoid lumps\nKeep stirring until the sauce thickens\nStir until the cheese melts and becomes creamy\nAdd salt and pepper as per taste\nAdd the cooked macaroni to the cheese sauce\nMix well until all pasta is coated with the sauce\nTransfer the mac and cheese to an oven-safe dish\nSprinkle extra cheese on top and bake at 180°C for 10–15 minutes until golden brown',favorite:false},
+      {name:'Burger',cuisine:'American',type:'nonveg',time:'20 mins',desc:'Juicy beef burger with toppings.',img:'https://i.pinimg.com/736x/ef/d1/ab/efd1ab4b55f460cd93a174e139a0da96.jpg',ingredients:['Burger bun','Beef patty','Lettuce','Tomato','Onion','Cheese'],steps:'Prepare the patties by seasoning ground beef with salt, pepper, and optional spices, then shape into rounds\nCook the patties on a grill or skillet until desired doneness\nToast the buns lightly for a crispy texture\nAssemble the burger by layering the patty with cheese, lettuce, tomato, onions, pickles, and condiments\nServe hot with fries or a side of your choice',favorite:false},
+      {name:'Corn on the Dog',cuisine:'American',type:'nonveg',time:'15 mins',desc:'Hot dog coated in cornmeal batter.',img:'https://i.pinimg.com/736x/4c/a1/c0/4ca1c047b45def73b76868279414887e.jpg',ingredients:['Hot dog','Cornmeal batter','Oil'],steps:'Prepare the hot dogs by skewering them on sticks\nMake the batter by mixing cornmeal, flour, sugar, baking powder, salt, milk, and eggs until smooth\nDip each hot dog into the batter, ensuring it’s fully coated\nDeep-fry the coated hot dogs in hot oil until golden brown and crispy\nServe immediately with ketchup, mustard, or your favorite dipping sauces',favorite:false},
+      {name:'Bacon',cuisine:'American',type:'nonveg',time:'10 mins',desc:'Crispy fried bacon strips.',img:'https://i.pinimg.com/736x/d6/de/a1/d6dea188ec4fe586c4862847b5a8226a.jpg',ingredients:['Bacon strips'],steps:'Cure the pork belly by rubbing it with a mixture of salt, sugar, and optional spices, then refrigerate for several days\nRinse and dry the cured pork to remove excess salt and prepare for smoking or cooking\nSmoke the pork over low heat using wood chips for flavor, or bake it in the oven\nSlice the bacon into thin strips \nonce fully cooked and cooled slightly\nCook the slices in a skillet or oven until crispy, then serve hot',favorite:false},
+      {name:'Hot Dog',cuisine:'American',type:'nonveg',time:'10 mins',desc:'Sausage in a bun with condiments.',img:'https://i.pinimg.com/1200x/2e/9e/1f/2e9e1f6c2c6e64185fdb228af8ec4402.jpg',ingredients:['Hot dog bun','Sausage','Ketchup','Mustard','Relish'],steps:'Boil, grill, or steam the sausages until fully cooked and heated through\nToast the buns lightly to make them warm and slightly crispy\nPlace the cooked sausage inside the bun\nAdd toppings like mustard, ketchup, onions, relish, cheese, or sauerkraut\nServe immediately while hot, often with fries or chips on the side',favorite:false},
+      {name:'Buffalo Wings',cuisine:'American',type:'nonveg',time:'30 mins',desc:'Spicy chicken wings in buffalo sauce.',img:'https://i.pinimg.com/736x/e1/6c/6a/e16c6abdb9e04596239436e47178c1cc.jpg',ingredients:['Chicken wings','Hot sauce','Butter','Spices'],steps:'Prepare the chicken wings by cleaning and patting them dry\nDeep-fry or bake the wings until golden brown and crispy\nMake the buffalo sauce by melting butter and mixing with hot sauce\nToss the cooked wings in the buffalo sauce until evenly coated\nServe hot with celery sticks and blue cheese or ranch dressing',favorite:false},
+
+      {name:'Margherita Pizza',cuisine:'Italian',type:'veg',time:'25 mins',desc:'Classic Italian pizza topped with fresh mozzarella, tomatoes, and basil.',img:'https://i.pinimg.com/736x/bc/45/3d/bc453dcf86908a1335d154c3ca251fb4.jpg',ingredients:['Pizza dough','Tomato sauce','Fresh mozzarella','Fresh basil','Olive oil','salt'],steps:'Mix flour, yeast, sugar, and salt\nAdd warm water and olive oil; knead into a soft dough\nCover and let it rest for 1–2 hours until it doubles in size\nRoll the dough into a round pizza base on a floured surface\nSpread pizza sauce or tomato puree evenly over the base\nSprinkle shredded mozzarella cheese on top\nAdd fresh basil leaves and a pinch of oregano\nBake the pizza for 12–15 minutes or until the crust is golden and cheese melts\nDrizzle a little olive oil on top and serve hot',favorite:false},
+      {name:'Lasagna',cuisine:'Italian',type:'nonveg',time:'1 hr',desc:'Layered pasta with rich meat sauce, creamy béchamel, and melted cheese.',img:'https://i.pinimg.com/736x/b7/32/84/b732847d2b6dba5ec3f7a43199704574.jpg',ingredients:['Lasagna sheets','Ground beef','Tomato sauce','Béchamel sauce','Mozzarella cheese','Parmesan cheese','Onion','garlic','Olive oil','Salt','pepper'],steps:'Preheat oven to 375°F (190°C)\nSauté onion and garlic in olive oil, then cook ground beef until browned\nAdd tomato sauce and simmer for 10 minutes\nLayer lasagna sheets, meat sauce, and béchamel in a baking dish\nSprinkle mozzarella and parmesan on top\nBake for 45–50 minutes until golden and bubbly',favorite:false},
+      {name:'Arancini',cuisine:'Italian',type:'veg',time:'50 mins',desc:'Crispy fried rice balls stuffed with cheese and ragù.',img:'https://i.pinimg.com/1200x/41/2d/53/412d53c31fdc735387db0dce88a2dfbe.jpg',ingredients:['cooked risotto or rice','mozzarella cubes','eggs','breadcrumbs','flour','Oil','Salt','pepper'],steps:'In a bowl, mix cooked rice, cheese, peas, salt, and pepper\nAdd a little flour and egg to bind the mixture\nTake small portions and roll them into round balls\nYou can add a small cube of cheese in the center for extra flavor\nRoll each ball in flour → dip in beaten egg → roll in breadcrumbs\nHeat oil in a pan and deep fry the balls until golden brown and crispy\nServe hot with tomato ketchup or marinara sauce',favorite:false},
+      {name:'Ravioli',cuisine:'Italian',type:'veg',time:'1 hr',desc:'Soft pasta pockets filled with ricotta and spinach, served with a butter sauce.',img:'https://i.pinimg.com/1200x/37/76/ea/3776eae4d11219563900e663011feef3.jpg',ingredients:['all-purpose flour','eggs','ricotta cheese','cooked spinach','butter','garlic','Salt','pepper'],steps:'In a bowl, mix flour and salt\nMake a small well in the center and add eggs and olive oil\nMix slowly until it forms a dough\nKnead for 5–10 minutes until smooth\nCover and rest it for 30 minutes\nPrepare the Filling\nIn a bowl, mix ricotta, chopped spinach, grated cheese, salt, and pepper\nKeep it ready\nDivide dough into two portions\nRoll each portion into a thin sheet\nDust with flour to prevent sticking\nOn one sheet, place small spoonfuls of filling evenly spaced\nBrush edges with a little water to help seal\nPlace the second sheet on top and press gently around each filling to remove air\nCut into small squares or circles \nPress edges with a fork to seal properly\nBoil water in a large with a little salt and oil\nDrop ravioli pieces gently into boiling water\nCook for 3–5 minutes or until they float to the top\nRemove carefully with a spoon and drain\nServe hot with tomato sauce, white sauce, or butter and herbs\nSprinkle cheese on top for extra flavor',favorite:false},
+      {name:'Gnocchi',cuisine:'Italian',type:'veg',time:'40 mins',desc:'Soft potato dumplings served with creamy or tomato sauce.',img:'https://i.pinimg.com/736x/13/77/67/137767fe8b15f45660af2a70d1222098.jpg',ingredients:['medium potatoes','flour','egg yolk','Salt','butter','grated Parmesan'],steps:'Boil potatoes until soft\nPeel and mash until smooth\nLet them cool slightly\nIn a bowl, combine mashed potatoes, flour, egg, salt, and nut\nKnead gently to form a soft, smooth dough\nAvoid overmixing\nDivide dough into small portions\nRoll each portion into a long rope\npress lightly with a fork to create ridges\nBoil water in a large pot with salt\nDrop gnocchi in boiling water\nCook until they float to the surface\nRemove with a slotted spoon and drain\nToss cooked gnocchi with pasta sauce, butter, or olive oil\nGarnish with parmesan and herbs',favorite:false}
+    ];
+
+    /***** Utility & rendering functions *****/
+    function setFilter(f) {
+      filter = f;
+      document.querySelectorAll('.filter-buttons button').forEach(b => b.classList.remove('active'));
+      document.getElementById(f + 'Btn')?.classList.add('active');
+      renderAll();
+    }
+
+    function showPage(p) {
+      // hide all pages
+      document.querySelectorAll('.page').forEach(d => d.style.display = 'none');
+      // show selected
+      document.getElementById(p).style.display = 'block';
+      // nav active state
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      if (p === 'home') document.getElementById('navHome').classList.add('active');
+      if (p === 'cuisines') document.getElementById('navCuisines').classList.add('active');
+      if (p === 'favorites') document.getElementById('navFavorites').classList.add('active');
+      if (p === 'mealPlanner') document.getElementById('navMeal').classList.add('active');
+      renderAll();
+      if (p === 'mealPlanner') renderMealPlanner();
+    }
+
+    function renderAll() {
+      const query = document.getElementById('searchBox').value.toLowerCase();
+      const filtered = recipes.filter(r =>
+        (filter === 'all' ||
+         (filter === 'veg' && r.type === 'veg') ||
+         (filter === 'nonveg' && r.type === 'nonveg'))
+        && (r.name.toLowerCase().includes(query) ||
+            r.cuisine.toLowerCase().includes(query) ||
+            (r.desc && r.desc.toLowerCase().includes(query)))
+      );
+      renderSection('home', filtered);
+      renderFavorites(); // updates favorites section
+      renderCuisines();
+    }
+
+    function renderSection(id, data) {
+      const el = document.getElementById(id);
+      if (!data || data.length === 0) {
+        el.innerHTML = '<p style="text-align:center;">No recipes to show.</p>';
+        return;
+      }
+      el.innerHTML = `<div class='grid'>${data.map((r,i) =>
+        `<div class='card' style="background:${gradients[i % gradients.length]}" onclick="showRecipeDetail(${recipes.indexOf(r)})">
+           <div class="favorite-btn" onclick="event.stopPropagation();toggleFavorite(${recipes.indexOf(r)})">${r.favorite ? '❤' : '🤍'}</div>
+           <div class="badge">${cIcons[r.cuisine] || '🍴'} ${r.type === 'veg' ? '🥦' : '🍗'}</div>
+           <img src='${r.img || 'https://via.placeholder.com/600x400?text=No+Image'}' alt="${r.name}"/>
+           <div class='card-content'><h3>${r.name}</h3><p><b>${r.cuisine}</b>: ${r.desc}<br><b>Time:</b> ${r.time}</p></div>
+         </div>`).join('')}</div>`;
+    }
+
+    function toggleFavorite(i) {
+      recipes[i].favorite = !recipes[i].favorite;
+      renderAll();
+    }
+
+    function renderFavorites() {
+      const favs = recipes.filter(r => r.favorite);
+      const el = document.getElementById('favorites');
+      if (!favs.length) {
+        el.innerHTML = '<p style="text-align:center;">No favorites yet! ❤ Click the heart on any recipe to add.</p>';
+        return;
+      }
+      el.innerHTML = `<div class='grid'>${favs.map((r,i) =>
+        `<div class='cuisine-detail-card' style="background:${gradients[i % gradients.length]}" onclick="showRecipeDetail(${recipes.indexOf(r)})">
+           <div class="badge">${cIcons[r.cuisine] || '🍴'} ${r.type === 'veg' ? '🥦' : '🍗'}</div>
+           <img src='${r.img || 'https://via.placeholder.com/600x400?text=No+Image'}' alt="${r.name}"/>
+           <div class='card-content'><h3>${r.name}</h3><p>${r.desc}<br><b>Time:</b> ${r.time}</p></div>
+         </div>`).join('')}</div>`;
+    }
+
+    function renderCuisines() {
+      const cSet = [...new Set(recipes.map(r => r.cuisine))];
+      const el = document.getElementById('cuisines');
+      if (!cSet.length) { el.innerHTML = '<p>No cuisines found.</p>'; return; }
+      el.innerHTML = `<div class='grid'>${cSet.map((c,i) =>
+        `<div class='cuisine-card' style="background:${gradients[i % gradients.length]}" onclick="showCuisineDetails('${c}')"><h3>${cIcons[c] || '🍴'} ${c}</h3></div>`
+      ).join('')}</div>`;
+    }
+
+    function showCuisineDetails(c) {
+      const el = document.getElementById('cuisineDetails');
+      const list = recipes.filter(r => r.cuisine === c);
+      el.innerHTML = `<span class="cuisine-detail-back" onclick="showPage('cuisines')">⬅ Back</span>
+        <h2 style="color:#ff6f61;font-family:'Lobster',cursive;text-align:center;margin-top:0">${cIcons[c] || ''} ${c}</h2>
+        <div class='grid'>${list.map((r,i)=>
+          `<div class='cuisine-detail-card' style="background:${gradients[i % gradients.length]}" onclick="showRecipeDetail(${recipes.indexOf(r)})">
+             <div class="badge">${cIcons[r.cuisine] || '🍴'} ${r.type === 'veg' ? '🥦' : '🍗'}</div>
+             <img src='${r.img || 'https://via.placeholder.com/600x400?text=No+Image'}' alt="${r.name}"/>
+             <div class='card-content'><h3>${r.name}</h3><p>${r.desc}<br><b>Time:</b> ${r.time}</p></div>
+           </div>`
+        ).join('')}</div>`;
+      showPage('cuisineDetails');
+    }
+
+    function showRecipeDetail(i) {
+      const r = recipes[i];
+      if (!r) return;
+      document.getElementById('modalContent').innerHTML = `<h2>${r.name}</h2>
+        <p style="text-align:center;"><b>Cuisine:</b> ${r.cuisine} ${cIcons[r.cuisine] || '🍴'}</p>
+        <p style="text-align:center;"><b>Time:</b> ${r.time}</p>
+        <img src="${r.img || 'https://via.placeholder.com/900x400?text=No+Image'}" style="width:100%;border-radius:10px;margin-bottom:10px;">
+        <h3>Ingredients:</h3><ul>${(r.ingredients||[]).map(x => `<li>${x}</li>`).join('')}</ul>
+        <h3>Steps:</h3><pre>${r.steps || ''}</pre>`;
+      document.getElementById('modalOverlay').style.display = 'flex';
+    }
+
+    function closeModal(e){
+      // if called by clicking overlay or close button
+      if (!e || e.target === document.getElementById('modalOverlay')) {
+        document.getElementById('modalOverlay').style.display = 'none';
+      }
+    }
+
+    function renderMealPlanner() {
+      const div = document.getElementById('mealPlanner');
+      div.innerHTML = `<h2 style="text-align:center;">Weekly Meal Planner</h2>${weekDays.map(day =>
+        `<div class="meal-day"><h3>${day}</h3><select onchange="mealPlan['${day}']=this.value;renderMealSummary()">
+           <option value="">-- Select Recipe --</option>${recipes.map((r,i) =>
+             `<option value="${i}" ${mealPlan[day] == i ? 'selected' : ''}>${r.name} ${r.type === 'veg' ? '🥦' : '🍗'}</option>`
+           ).join('')}</select></div>`
+      ).join('')}<div id="mealSummary" class="meal-summary"></div>`;
+      renderMealSummary();
+    }
+
+    function renderMealSummary() {
+      document.getElementById('mealSummary').innerHTML = `<h3>Meal Plan Summary</h3><ul>${weekDays.map(d =>
+        `<li><b>${d}:</b> ${mealPlan[d] !== undefined && mealPlan[d] !== "" ? recipes[mealPlan[d]].name : '--No selection--'}</li>`
+      ).join('')}</ul>`;
+    }
+
+    // initial render
+    renderAll();
+    showPage('home');
+
+  </script>
+</body>
+</html>
